@@ -15,33 +15,18 @@ def main():
     article_title = input("Enter article title: ")
     article_content = input("Enter article content: ")
 
-    # Connect to the database
+    # Create an Author and a Magazine instance
+    author = Author(name=author_name)
+    magazine = Magazine(name=magazine_name, category=magazine_category)
+
+    # Create an Article instance
+    article = Article(title=article_title, content=article_content, author=author, magazine=magazine)
+
+    # Connect to the database to retrieve data for display (optional)
     conn = get_db_connection()
     cursor = conn.cursor()
 
-
-    '''
-        The following is just for testing purposes, 
-        you can modify it to meet the requirements of your implmentation.
-    '''
-
-    # Create an author
-    cursor.execute('INSERT INTO authors (name) VALUES (?)', (author_name,))
-    author_id = cursor.lastrowid # Use this to fetch the id of the newly created author
-
-    # Create a magazine
-    cursor.execute('INSERT INTO magazines (name, category) VALUES (?,?)', (magazine_name, magazine_category))
-    magazine_id = cursor.lastrowid # Use this to fetch the id of the newly created magazine
-
-    # Create an article
-    cursor.execute('INSERT INTO articles (title, content, author_id, magazine_id) VALUES (?, ?, ?, ?)',
-                   (article_title, article_content, author_id, magazine_id))
-
-    conn.commit()
-
-    # Query the database for inserted records. 
-    # The following fetch functionality should probably be in their respective models
-
+    # Query the database for inserted records and fetch all authors, magazines, and articles
     cursor.execute('SELECT * FROM magazines')
     magazines = cursor.fetchall()
 
@@ -55,16 +40,23 @@ def main():
 
     # Display results
     print("\nMagazines:")
-    for magazine in magazines:
-        print(Magazine(magazine["id"], magazine["name"], magazine["category"]))
+    for magazine_row in magazines:
+        # Create Magazine objects and print their details
+        magazine_obj = Magazine(magazine_row[0], magazine_row[1], magazine_row[2])
+        print(f"ID: {magazine_obj.id}, Name: {magazine_obj.name}, Category: {magazine_obj.category}")
 
     print("\nAuthors:")
-    for author in authors:
-        print(Author(author["id"], author["name"]))
+    for author_row in authors:
+        # Create Author objects and print their details
+        author_obj = Author(author_row[0], author_row[1])
+        print(f"ID: {author_obj.id}, Name: {author_obj.name}")
 
     print("\nArticles:")
-    for article in articles:
-        print(Article(article["id"], article["title"], article["content"], article["author_id"], article["magazine_id"]))
+    for article_row in articles:
+        # Create Article objects and print their details
+        article_obj = Article(article_row[1], article_row[2], Author(author_row[0], author_row[1]), Magazine(magazine_row[0], magazine_row[1], magazine_row[2]))
+        print(f"ID: {article_obj.id}, Title: {article_obj.title}, Content: {article_obj.content}, Author: {article_obj.author.name}, Magazine: {article_obj.magazine.name}")
 
 if __name__ == "__main__":
     main()
+
